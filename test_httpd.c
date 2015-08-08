@@ -63,7 +63,7 @@ int main(int argc, char **argv)
                 inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
         wrtinfomsg(buffer);
 
-      	//fork a new process to deal with the connect ,the parent continue wait for new connect
+		//fork一个新的进程来处理连接,父进程继续等待新的连接
        pid_t pid;  
 	   if((pid=fork())==-1)
 	   {

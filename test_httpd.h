@@ -40,57 +40,57 @@ void wrtinfomsg(char *msg)
 }
 
 
-int get_arg (char *cmd)
+int get_arg(char *cmd)
 {
 
-		FILE* fp;
-        char buffer[1024];
-        size_t bytes_read;
-        char* match;
-        fp = fopen ("/etc/test_httpd.conf", "r");
-        bytes_read = fread (buffer, 1, sizeof (buffer), fp);
-        fclose (fp);
+	FILE* fp;
+	char buffer[1024];
+	size_t bytes_read;
+	char* match;
+	fp = fopen("/etc/test_httpd.conf", "r");
+	bytes_read = fread(buffer, 1, sizeof(buffer), fp);
+	fclose(fp);
 
-        if (bytes_read == 0 || bytes_read == sizeof (buffer))
-                return 0;
-        buffer[bytes_read] = '\0';
+	if (bytes_read == 0 || bytes_read == sizeof(buffer))
+		return 0;
+	buffer[bytes_read] = '\0';
 
-        if(!strncmp(cmd,"home_dir",8))
-        {
-                match = strstr (buffer, "home_dir=");
-                if (match == NULL)
-                        return 0;
-                bytes_read=sscanf(match,"home_dir=%s",home_dir);
-                return bytes_read;
-        }
-
-        else if(!strncmp(cmd,"port",4))
-        {
-                match = strstr (buffer, "port=");
-                if (match == NULL)
-                        return 0;
-                bytes_read=sscanf(match,"port=%s",port);
-                return bytes_read;
-        }
-
-        else if(!strncmp(cmd,"ip",2))
-        {
-                match = strstr (buffer, "ip=");
-                if (match == NULL)
-                        return 0;
-                bytes_read=sscanf(match,"ip=%s",ip);
-                return bytes_read;
-        }
-        else if(!strncmp(cmd,"back",4))
-        {
-                match = strstr (buffer, "back=");
-                if (match == NULL)
-                        return 0;
-                bytes_read=sscanf(match,"back=%s",back);
-                return bytes_read;
-        }
-	 else
+	if(!strncmp(cmd,"home_dir",8))
+	{
+		match = strstr (buffer, "home_dir=");
+		if (match == NULL)
 			return 0;
+		bytes_read=sscanf(match,"home_dir=%s",home_dir);
+		return bytes_read;
+	}
+
+	else if(!strncmp(cmd,"port",4))
+	{
+		match = strstr (buffer, "port=");
+		if (match == NULL)
+			return 0;
+		bytes_read=sscanf(match,"port=%s",port);
+		return bytes_read;
+	}
+
+	else if(!strncmp(cmd,"ip",2))
+	{
+		match = strstr (buffer, "ip=");
+		if (match == NULL)
+			return 0;
+		bytes_read=sscanf(match,"ip=%s",ip);
+		return bytes_read;
+	}
+	else if(!strncmp(cmd,"back",4))
+	{
+		match = strstr (buffer, "back=");
+		if (match == NULL)
+			return 0;
+		bytes_read=sscanf(match,"back=%s",back);
+		return bytes_read;
+	}
+	 else
+		return 0;
 }
 
 
@@ -112,7 +112,7 @@ char file_type(mode_t st_mode)
 		return 'd';
 }
 
-//search the up-path of dirpath
+//获得当前路径的目录
 char *dir_up(char *dirpath)
 {
     static char Path[MAXPATH];
@@ -129,7 +129,7 @@ char *dir_up(char *dirpath)
 }
 
 
- //send the path data to client ;if path is a file ,send the data, if path is a dir, list 
+//发送path里面的数据到客户端,如果path是一个文件,那就发送数据,如果是目录,那就列出目录
 void GiveResponse(FILE * client_sock, char *Path)
 {
     struct dirent *dirent;
@@ -143,20 +143,20 @@ void GiveResponse(FILE * client_sock, char *Path)
 	struct group *p_group;
 	char *p_time;	
 
-	//get th dir or file
+	//得到目录或文件
     len = strlen(home_dir) + strlen(Path) + 1;
     realPath = malloc(len + 1);
     bzero(realPath, len + 1);
     sprintf(realPath, "%s/%s", home_dir, Path);
 
-	//get port
+	//得到端口
     len = strlen(port) + 1;
     nport = malloc(len + 1);
     bzero(nport, len + 1);
     sprintf(nport, ":%s", port);
 
 
-	//get file state to get the information :dir or file
+	//得到dir或file的文件状态
     if (stat(realPath, &info)) {
         fprintf(client_sock,
                 "HTTP/1.1 200 OK\r\nServer:Test http server\r\nConnection: close\r\n\r\n<html><head><title>%d - %s</title></head>"
@@ -169,7 +169,7 @@ void GiveResponse(FILE * client_sock, char *Path)
         goto out;
     }
 
-	//if file ,send file
+	//如果是文件的话
     if (S_ISREG(info.st_mode)) 
 	{
         fd = open(realPath, O_RDONLY);
@@ -188,7 +188,7 @@ void GiveResponse(FILE * client_sock, char *Path)
 	else if (S_ISDIR(info.st_mode)) 
 	{
 
-	//if dir,list the dir
+	//如果是目录,那就列出来
         dir = opendir(realPath);
         fprintf(client_sock,
                 "HTTP/1.1 200 OK\r\nServer:Test http server\r\nConnection:close\r\n\r\n<html><head><title>%s</title></head>"
@@ -243,7 +243,7 @@ void GiveResponse(FILE * client_sock, char *Path)
         }
         fprintf(client_sock, "</table></center></body></html>");
     } else {
-      //if others,forbid access
+      //禁止访问其它内容
         fprintf(client_sock,
                 "HTTP/1.1 200 OK\r\nServer:Test http server\r\nConnection: close\r\n\r\n<html><head><title>permission denied</title></head>"
                 "<body><font size=+4>Linux HTTP server</font><br><hr width=\"100%%\"><br><center>"
@@ -293,15 +293,15 @@ void init_daemon(const char *pname, int facility)
 
 int get_addr(char *str)
 {
-        int inet_sock;
-        struct ifreq ifr;
-        inet_sock = socket(AF_INET, SOCK_DGRAM, 0);
-        strcpy(ifr.ifr_name, str);
-        if (ioctl(inet_sock, SIOCGIFADDR, &ifr) < 0)
-        {
-			wrtinfomsg("bind");
-			exit(EXIT_FAILURE);
-		}
-        sprintf(ip,"%s", inet_ntoa(((struct sockaddr_in*)&(ifr.ifr_addr))->sin_addr));
+	int inet_sock;
+	struct ifreq ifr;
+	inet_sock = socket(AF_INET, SOCK_DGRAM, 0);
+	strcpy(ifr.ifr_name, str);
+	if (ioctl(inet_sock, SIOCGIFADDR, &ifr) < 0)
+	{
+		wrtinfomsg("bind");
+		exit(EXIT_FAILURE);
+	}
+	sprintf(ip,"%s", inet_ntoa(((struct sockaddr_in*)&(ifr.ifr_addr))->sin_addr));
 }
 
